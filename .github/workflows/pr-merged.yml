@@ -5,7 +5,7 @@ on:
     types: [ closed ]
     
 env:
-  VERSION: 1.0.${{ github.run_number }}
+  MINOR_VERSION: ${{ github.run_number }}
 
 jobs:
   build:
@@ -13,17 +13,19 @@ jobs:
     if: github.event.pull_request.merged == true
     steps:
       - uses: actions/checkout@v2
+      - name: Offset version
+        # run: echo ::set-env name=FINAL_MINOR_VERSION::$(($MINOR_VERSION+200))
+        run: echo "MINOR_VERSION=$MINOR_VERSION+1000" >> $GITHUB_ENV
       - name: Add to or create release notes draft
         id: last_release
         uses: actions/github-script@v2
         env:
-          name: ${{ env.VERSION }}
-          releaseBody: "PR #${{ github.event.number }}:  ${{ github.event.pull_request.title }} ${{ toJson(github.event.pull_request) }}\r\n"
+          name: 1.0.${{ env.MINOR_VERSION }}
+          releaseBody: "PR #${{ github.event.number }}:  ${{ github.event.pull_request.title }}\r\n"
         with:
           github-token: ${{ github.token }}
           result-encoding: string
           script: |
-            core.info(JSON.stringify(process.env.META))
             const name = process.env.name
             const releaseBody = process.env.releaseBody
             let releaseList = await github.repos.listReleases({
