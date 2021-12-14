@@ -1,0 +1,57 @@
+name: PR Closed
+
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add to or create release notes draft
+        id: last_release
+        uses: actions/github-script@v2
+        env:
+          name: ${{ env.VERSION }}
+          releaseBody: "PR #${{ github.event.number }}:  ${{ github.event.pull_request.title }} ${{ github.event.pull_request.head.repo }} ${{ context.repo }}\r\n"
+        with:
+          github-token: ${{ github.token }}
+          result-encoding: string
+          script: |
+            const name = process.env.name
+            const releaseBody = process.env.releaseBody
+            let releaseList = await github.repos.listReleases({
+              repo: context.repo.repo,
+              owner: context.repo.owner,
+              per_page: 10,
+              page: 1
+            })
+            const result = releaseList.data.find(r => r.draft == true && r.prerelease == false)
+            if (!result || !result.name) {
+              core.info('No draft release found, create draft release: ' + name)
+              await github.repos.createRelease({
+                repo: context.repo.repo,
+                owner: context.repo.owner,
+                tag_name: name,
+                name: name,
+                body: releaseBody,
+                draft: true,
+                prerelease: false
+              })
+              return true
+            }
+            core.info('Found draft release: ' + JSON.stringify(result))
+            const updateRelease = await github.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: result.id,
+              tag_name: name,
+              name: name,
+              body: result.body + releaseBody,
+              draft: true,
+              prerelease: false,
+            })
+            core.info('Updated release with name: ' + name)
+            return name
