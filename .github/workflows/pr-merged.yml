@@ -6,6 +6,7 @@ on:
     
 env:
   VERSION: 1.0.${{ github.run_number }}
+  META: ${{ github.event.pull_request }}
 
 jobs:
   build:
@@ -18,11 +19,12 @@ jobs:
         uses: actions/github-script@v2
         env:
           name: ${{ env.VERSION }}
-          releaseBody: "PR #${{ github.event.number }}:  ${{ github.event.pull_request.title }} ${{ github.event.pull_request.head.repo.owner.login }}\r\n"
+          releaseBody: "PR #${{ github.event.number }}:  ${{ github.event.pull_request.title }} ${{ META.head.repo.owner.login }}\r\n"
         with:
           github-token: ${{ github.token }}
           result-encoding: string
           script: |
+            core.info(JSON.stringify(process.env.META))
             const name = process.env.name
             const releaseBody = process.env.releaseBody
             let releaseList = await github.repos.listReleases({
