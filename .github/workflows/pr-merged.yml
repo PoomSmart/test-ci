@@ -3,6 +3,9 @@ name: PR Closed
 on:
   pull_request:
     types: [ closed ]
+    
+env:
+  VERSION: 1.0.${{ github.run_number }}
 
 jobs:
   build:
