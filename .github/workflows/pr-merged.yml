@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Offset version
         # run: echo ::set-env name=FINAL_MINOR_VERSION::$(($MINOR_VERSION+200))
-        run: echo "MINOR_VERSION=$($MINOR_VERSION+1000)" >> $GITHUB_ENV
+        run: echo "MINOR_VERSION=$((MINOR_VERSION+1000))" >> $GITHUB_ENV
       - name: Add to or create release notes draft
         id: last_release
         uses: actions/github-script@v2
